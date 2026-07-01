@@ -37,6 +37,11 @@ app.use(
 app.use('/api/student-attendance', auth, checkPermission('STUDENT_ATTENDANCE'), require('./modules/student-attendance/routes'));
 app.use('/api/teacher-attendance', auth, checkPermission('TEACHER_ATTENDANCE'), require('./modules/teacher-attendance/routes'));
 app.use('/api/role-permissions', auth, checkPermission('ROLE_PERMISSION'), require('./modules/role-permissions/routes'));
+app.use('/api/class-section', auth, checkPermission('CLASS_SECTION'), require('./modules/class-section/routes'));
+app.use('/api/class-teachers', auth, checkPermission('CLASS_TEACHERS'), require('./modules/class-teachers/routes'));
+app.use('/api/subjects', auth, checkPermission('SUBJECTS'), require('./modules/subjects/routes'));
+app.use('/api/timetable', auth, checkPermission('TIMETABLE'), require('./modules/timetable/routes'));
+app.use('/api/online-meet-links', auth, checkPermission('ONLINE_MEET_LINKS'), require('./modules/online-meet-links/routes'));
 
 app.listen(
   process.env.PORT,
