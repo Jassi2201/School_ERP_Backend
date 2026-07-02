@@ -14,18 +14,44 @@ const storage = multer.diskStorage({
     cb(null, tempDir);
   },
   filename: (req, file, cb) => {
-    // Unique filename: timestamp + random number + original extension
     const unique = Date.now() + '-' + Math.round(Math.random() * 1E9);
     cb(null, unique + path.extname(file.originalname));
   }
 });
 
-// Accept only images
+// Accept almost all common file types (images, documents, video, audio, archives, etc.)
 const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image/')) {
+  const allowedTypes = [
+    // Images
+    'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
+    // Documents
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+    'text/plain',
+    'text/csv',
+    // Video
+    'video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo', 
+    'video/x-matroska', 'video/mpeg',
+    // Audio
+    'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3',
+    // Archives
+    'application/zip', 'application/x-rar-compressed', 'application/x-7z-compressed',
+    // Ebooks
+    'application/epub+zip',
+    // Other
+    'application/octet-stream' // fallback
+  ];
+
+  if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Only images are allowed'), false);
+    // For safety, still reject unknown types (optional – you can allow all)
+    cb(new Error('Unsupported file type'), false);
   }
 };
 
@@ -34,7 +60,7 @@ const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 2 * 1024 * 1024 // 2 MB max
+    fileSize: 50 * 1024 * 1024 // 50 MB max (enough for most videos and PDFs)
   }
 });
 
