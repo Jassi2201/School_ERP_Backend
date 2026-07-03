@@ -117,3 +117,48 @@ exports.getGrades = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// Get all marks with exam & student details
+exports.getAllMarks = async (req, res) => {
+  try {
+    const { role_name, user_id } = req.user;
+    let query = `
+      SELECT em.id AS mark_id, em.marks_obtained, em.grade, em.remarks,
+             e.id AS exam_id, e.name AS exam_name, e.exam_type, e.max_marks,
+             u.id AS student_id, u.full_name AS student_name,
+             c.name AS class_name, sec.name AS section_name,
+             s.name AS subject_name
+      FROM exam_marks em
+      JOIN exams e ON e.id = em.exam_id
+      JOIN users u ON u.id = em.student_id
+      JOIN classes c ON c.id = e.class_id
+      JOIN sections sec ON sec.id = e.section_id
+      JOIN subjects s ON s.id = e.subject_id
+      WHERE em.status = 'active' AND e.status = 'active'
+    `;
+    const params = [];
+    if (role_name === 'Student') {
+      query += ' AND em.student_id = ?';
+      params.push(user_id);
+    } else if (role_name === 'Teacher') {
+      query += ' AND e.subject_id IN (SELECT subject_id FROM teacher_allotments WHERE teacher_id = ?)';
+      params.push(user_id);
+    }
+    query += ' ORDER BY e.exam_date DESC, e.id, u.full_name';
+    const [rows] = await pool.query(query, params);
+    res.json({ success: true, data: rows });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// Delete a single mark entry
+exports.deleteMark = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await pool.query(`UPDATE exam_marks SET status = 'inactive' WHERE id = ?`, [id]);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

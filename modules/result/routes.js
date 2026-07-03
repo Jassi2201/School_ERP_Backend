@@ -12,4 +12,7 @@ router.post('/exams/:examId/marks', controller.saveMarks);
 // Grades
 router.get('/grades', controller.getGrades);
 
+router.get('/marks', controller.getAllMarks);        // new
+router.delete('/marks/:id', controller.deleteMark); // new
+
 module.exports = router;
