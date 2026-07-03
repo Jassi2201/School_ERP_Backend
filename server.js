@@ -44,6 +44,8 @@ app.use('/api/timetable', auth, checkPermission('TIMETABLE'), require('./modules
 app.use('/api/online-meet-links', auth, checkPermission('ONLINE_MEET_LINKS'), require('./modules/online-meet-links/routes'));
 app.use('/api/homework', auth, checkPermission('HOMEWORK'), require('./modules/homework/routes'));
 app.use('/api/study-material', auth, checkPermission('STUDY_MATERIAL'), require('./modules/study-material/routes'));
+app.use('/api/exam', auth, checkPermission('EXAM'), require('./modules/exam/routes'));
+app.use('/api/result', auth, checkPermission('RESULT'), require('./modules/result/routes'));
 
 app.listen(
   process.env.PORT,
