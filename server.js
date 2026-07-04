@@ -46,6 +46,16 @@ app.use('/api/homework', auth, checkPermission('HOMEWORK'), require('./modules/h
 app.use('/api/study-material', auth, checkPermission('STUDY_MATERIAL'), require('./modules/study-material/routes'));
 app.use('/api/exam', auth, checkPermission('EXAM'), require('./modules/exam/routes'));
 app.use('/api/result', auth, checkPermission('RESULT'), require('./modules/result/routes'));
+app.use('/api/notice', auth, checkPermission('NOTICE'), require('./modules/notice/routes'));
+app.use('/api/calendar', auth, checkPermission('CALENDAR'), require('./modules/calendar/routes'));
+app.use('/api/transport', auth, checkPermission('TRANSPORT'), require('./modules/transport/routes'));
+app.use('/api/student-transport', auth, checkPermission('STUDENT_TRANSPORT'), require('./modules/student-transport/routes'));
+app.use('/api/books', auth, checkPermission('BOOKS'), require('./modules/books/routes'));
+app.use('/api/book-issue', auth, checkPermission('BOOK_ISSUE'), require('./modules/book-issue/routes'));
+app.use('/api/book-record', auth, checkPermission('BOOK_RECORD'), require('./modules/book-record/routes'));
+app.use('/api/achievement', auth, checkPermission('ACHIEVEMENT'), require('./modules/achievement/routes'));
+app.use('/api/event', auth, checkPermission('EVENT'), require('./modules/event/routes'));
+app.use('/api/leave', auth, checkPermission('LEAVE'), require('./modules/leave/routes'));
 
 app.listen(
   process.env.PORT,
