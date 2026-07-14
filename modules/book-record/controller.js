@@ -82,3 +82,29 @@ exports.delete = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// ===================== STUDENT BOOKS (Mobile) =====================
+exports.getMyBooks = async (req, res) => {
+  try {
+    const student_id = req.user.user_id;
+
+    const [rows] = await pool.query(
+      `
+      SELECT bi.*,
+             b.title AS book_title,
+             b.author,
+             b.isbn,
+           bi.status
+      FROM book_issues bi
+      JOIN books b ON b.id = bi.book_id
+      WHERE bi.student_id = ?
+      ORDER BY bi.return_date IS NULL DESC, bi.due_date ASC
+      `,
+      [student_id]
+    );
+
+    res.json({ success: true, data: rows });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

@@ -2,10 +2,10 @@ const express = require("express");
 
 const router = express.Router();
 
-const {
-  login,
-} = require("../controllers/authController");
+const controller = require("../controllers/authController");
 
-router.post("/login", login);
+router.post("/login", controller.login);
+router.post("/mobile-login", controller.mobileLogin);
+
 
 module.exports = router;

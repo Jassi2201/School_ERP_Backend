@@ -202,11 +202,62 @@ exports.getSubmissions = async (req, res) => {
 };
 
 // Student submits homework
+
+// ===================== STUDENT HOMEWORK (with submission status) =====================
+exports.getStudentHomework = async (req, res) => {
+  try {
+    const student_id = req.user.user_id;
+
+    // Get student's class and section
+    const [student] = await pool.query(
+      `SELECT class_id, section_id FROM student_details WHERE user_id = ?`,
+      [student_id]
+    );
+    if (!student.length) {
+      return res.status(404).json({ success: false, message: 'Student not found' });
+    }
+
+    const { class_id, section_id } = student[0];
+
+    // Query homework with submission info for this student
+    const [rows] = await pool.query(
+      `
+      SELECT h.*,
+             s.name AS subject_name,
+             u.full_name AS teacher_name,
+             hs.id AS submission_id,
+             hs.submission_text,
+             hs.attachment AS submission_attachment,
+             hs.submitted_at,
+             hs.status AS submission_status,
+             hs.marks,
+             hs.teacher_remarks
+      FROM homework h
+      JOIN subjects s ON s.id = h.subject_id
+      JOIN users u ON u.id = h.teacher_id
+      LEFT JOIN homework_submissions hs ON hs.homework_id = h.id AND hs.student_id = ?
+      WHERE h.class_id = ? AND h.section_id = ? AND h.status = 'active'
+      ORDER BY h.due_date ASC, h.created_at DESC
+      `,
+      [student_id, class_id, section_id]
+    );
+
+    // Process each row: set default status if no submission
+    const processed = rows.map(row => ({
+      ...row,
+      submission_status: row.submission_status || 'Pending',
+    }));
+
+    res.json({ success: true, data: processed });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
 exports.submitHomework = async (req, res) => {
   const connection = await pool.getConnection();
   try {
     await connection.beginTransaction();
-    const { homeworkId } = req.params;
+     const { homeworkId } = req.query;
     const student_id = req.user.user_id;
     const { submission_text } = req.body;
 

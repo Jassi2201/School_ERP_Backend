@@ -1,6 +1,6 @@
 const pool = require('../../config/db');
 
-// ========== CRUD ==========
+// ========== Admin CRUD (unchanged) ==========
 exports.getAll = async (req, res) => {
   try {
     const [rows] = await pool.query(`
@@ -87,82 +87,59 @@ exports.delete = async (req, res) => {
   }
 };
 
-// ========== Student/Teacher Views ==========
-exports.getStudentToday = async (req, res) => {
+exports.getMyClasses = async (req, res) => {
   try {
-    const { studentId } = req.params;
-    const [student] = await pool.query(`SELECT class_id, section_id FROM student_details WHERE user_id = ?`, [studentId]);
-    if (!student.length) return res.status(404).json({ success: false, message: 'Student not found' });
+    const userId = req.user.user_id;
+    const [student] = await pool.query(
+      `SELECT class_id, section_id FROM student_details WHERE user_id = ?`,
+      [userId]
+    );
+    if (!student.length) {
+      return res.status(404).json({ success: false, message: 'Student not found' });
+    }
+    const { class_id, section_id } = student[0];
     const today = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date().getDay()];
-    const [rows] = await pool.query(`
-      SELECT t.*, s.name AS subject_name, u.full_name AS teacher_name
-      FROM timetable t
-      JOIN subjects s ON s.id = t.subject_id
-      JOIN users u ON u.id = t.teacher_id
-      WHERE t.class_id = ? AND t.section_id = ?
-        AND t.day_of_week = ? AND t.status = 'active'
-      ORDER BY t.period_number
-    `, [student[0].class_id, student[0].section_id, today]);
-    res.json({ success: true, data: rows });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
 
-exports.getStudentWeek = async (req, res) => {
-  try {
-    const { studentId } = req.params;
-    const [student] = await pool.query(`SELECT class_id, section_id FROM student_details WHERE user_id = ?`, [studentId]);
-    if (!student.length) return res.status(404).json({ success: false, message: 'Student not found' });
-    const [rows] = await pool.query(`
-      SELECT t.*, s.name AS subject_name, u.full_name AS teacher_name
-      FROM timetable t
-      JOIN subjects s ON s.id = t.subject_id
-      JOIN users u ON u.id = t.teacher_id
-      WHERE t.class_id = ? AND t.section_id = ?
-        AND t.status = 'active'
-      ORDER BY FIELD(t.day_of_week, 'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'),
-               t.period_number
-    `, [student[0].class_id, student[0].section_id]);
-    res.json({ success: true, data: rows });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
+    const [todayRows, weekRows, teacherRows] = await Promise.all([
+      pool.query(`
+        SELECT t.*, s.name AS subject_name, u.full_name AS teacher_name
+        FROM timetable t
+        JOIN subjects s ON s.id = t.subject_id
+        JOIN users u ON u.id = t.teacher_id
+        WHERE t.class_id = ? AND t.section_id = ?
+          AND t.day_of_week = ? AND t.status = 'active'
+        ORDER BY t.period_number
+      `, [class_id, section_id, today]),
+      pool.query(`
+        SELECT t.*, s.name AS subject_name, u.full_name AS teacher_name
+        FROM timetable t
+        JOIN subjects s ON s.id = t.subject_id
+        JOIN users u ON u.id = t.teacher_id
+        WHERE t.class_id = ? AND t.section_id = ?
+          AND t.status = 'active'
+        ORDER BY FIELD(t.day_of_week, 'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'),
+                 t.period_number
+      `, [class_id, section_id]),
+      pool.query(`
+        SELECT DISTINCT s.name AS subject_name, u.full_name AS teacher_name
+        FROM timetable t
+        JOIN subjects s ON s.id = t.subject_id
+        JOIN users u ON u.id = t.teacher_id
+        WHERE t.class_id = ? AND t.section_id = ?
+          AND t.status = 'active'
+        ORDER BY s.name
+      `, [class_id, section_id])
+    ]);
 
-exports.getTeacherToday = async (req, res) => {
-  try {
-    const { teacherId } = req.params;
-    const today = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][new Date().getDay()];
-    const [rows] = await pool.query(`
-      SELECT t.*, c.name AS class_name, sec.name AS section_name, s.name AS subject_name
-      FROM timetable t
-      JOIN classes c ON c.id = t.class_id
-      JOIN sections sec ON sec.id = t.section_id
-      JOIN subjects s ON s.id = t.subject_id
-      WHERE t.teacher_id = ? AND t.day_of_week = ? AND t.status = 'active'
-      ORDER BY t.period_number
-    `, [teacherId, today]);
-    res.json({ success: true, data: rows });
-  } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
-  }
-};
-
-exports.getTeacherWeek = async (req, res) => {
-  try {
-    const { teacherId } = req.params;
-    const [rows] = await pool.query(`
-      SELECT t.*, c.name AS class_name, sec.name AS section_name, s.name AS subject_name
-      FROM timetable t
-      JOIN classes c ON c.id = t.class_id
-      JOIN sections sec ON sec.id = t.section_id
-      JOIN subjects s ON s.id = t.subject_id
-      WHERE t.teacher_id = ? AND t.status = 'active'
-      ORDER BY FIELD(t.day_of_week, 'Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'),
-               t.period_number
-    `, [teacherId]);
-    res.json({ success: true, data: rows });
+    res.json({
+      success: true,
+      data: {
+        today: todayRows[0],
+        weekly: weekRows[0],
+        subjectTeachers: teacherRows[0],
+        // online links are already inside each timetable entry (t.online_link)
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

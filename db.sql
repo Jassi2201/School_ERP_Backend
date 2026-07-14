@@ -19,6 +19,65 @@
 CREATE DATABASE IF NOT EXISTS `school_erp` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
 USE `school_erp`;
 
+-- Dumping structure for table school_erp.book_issues
+CREATE TABLE IF NOT EXISTS `book_issues` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `book_id` bigint unsigned NOT NULL,
+  `student_id` bigint unsigned NOT NULL,
+  `issue_date` date NOT NULL,
+  `due_date` date NOT NULL,
+  `return_date` date DEFAULT NULL,
+  `fine_amount` decimal(10,2) DEFAULT '0.00',
+  `status` enum('issued','returned','overdue') DEFAULT 'issued',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `book_id` (`book_id`),
+  KEY `student_id` (`student_id`),
+  CONSTRAINT `book_issues_ibfk_1` FOREIGN KEY (`book_id`) REFERENCES `books` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `book_issues_ibfk_2` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table school_erp.books
+CREATE TABLE IF NOT EXISTS `books` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `title` varchar(200) NOT NULL,
+  `author` varchar(100) NOT NULL,
+  `isbn` varchar(20) DEFAULT NULL,
+  `quantity` int unsigned NOT NULL DEFAULT '1',
+  `available` int unsigned NOT NULL DEFAULT '1',
+  `status` enum('active','inactive') DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `isbn` (`isbn`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table school_erp.calendar_events
+CREATE TABLE IF NOT EXISTS `calendar_events` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `title` varchar(200) NOT NULL,
+  `description` text,
+  `event_type` varchar(50) NOT NULL,
+  `start_date` date NOT NULL,
+  `end_date` date NOT NULL,
+  `start_time` time DEFAULT NULL,
+  `end_time` time DEFAULT NULL,
+  `location` varchar(255) DEFAULT NULL,
+  `color` varchar(7) DEFAULT '#3B82F6',
+  `attachment` varchar(255) DEFAULT NULL,
+  `status` enum('active','inactive') DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Data exporting was unselected.
+
 -- Dumping structure for table school_erp.class_teachers
 CREATE TABLE IF NOT EXISTS `class_teachers` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
@@ -53,6 +112,136 @@ CREATE TABLE IF NOT EXISTS `classes` (
 
 -- Data exporting was unselected.
 
+-- Dumping structure for table school_erp.events
+CREATE TABLE IF NOT EXISTS `events` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `title` varchar(200) NOT NULL,
+  `description` text,
+  `event_type` varchar(50) NOT NULL,
+  `start_date` date NOT NULL,
+  `end_date` date NOT NULL,
+  `venue` varchar(200) DEFAULT NULL,
+  `attachment` varchar(255) DEFAULT NULL,
+  `status` enum('active','inactive') DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table school_erp.exam_marks
+CREATE TABLE IF NOT EXISTS `exam_marks` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `exam_id` bigint unsigned NOT NULL,
+  `student_id` bigint unsigned NOT NULL,
+  `marks_obtained` decimal(5,2) DEFAULT NULL,
+  `grade` varchar(5) DEFAULT NULL,
+  `remarks` text,
+  `status` enum('active','inactive') DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_exam_student` (`exam_id`,`student_id`),
+  KEY `student_id` (`student_id`),
+  CONSTRAINT `exam_marks_ibfk_1` FOREIGN KEY (`exam_id`) REFERENCES `exams` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `exam_marks_ibfk_2` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table school_erp.exams
+CREATE TABLE IF NOT EXISTS `exams` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `exam_type` varchar(50) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `class_id` bigint unsigned NOT NULL,
+  `section_id` bigint unsigned NOT NULL,
+  `subject_id` bigint unsigned NOT NULL,
+  `academic_year` varchar(20) NOT NULL,
+  `max_marks` decimal(5,2) NOT NULL DEFAULT '100.00',
+  `passing_marks` decimal(5,2) NOT NULL DEFAULT '35.00',
+  `exam_date` date DEFAULT NULL,
+  `status` enum('active','inactive') DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `class_id` (`class_id`),
+  KEY `section_id` (`section_id`),
+  KEY `subject_id` (`subject_id`),
+  CONSTRAINT `exams_ibfk_1` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `exams_ibfk_2` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `exams_ibfk_3` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table school_erp.grades
+CREATE TABLE IF NOT EXISTS `grades` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `grade` varchar(5) NOT NULL,
+  `min_marks` decimal(5,2) NOT NULL,
+  `max_marks` decimal(5,2) NOT NULL,
+  `description` varchar(100) DEFAULT NULL,
+  `status` enum('active','inactive') DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_grade` (`grade`)
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table school_erp.homework
+CREATE TABLE IF NOT EXISTS `homework` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `class_id` bigint unsigned NOT NULL,
+  `section_id` bigint unsigned NOT NULL,
+  `subject_id` bigint unsigned NOT NULL,
+  `teacher_id` bigint unsigned NOT NULL,
+  `title` varchar(200) NOT NULL,
+  `description` text,
+  `due_date` date NOT NULL,
+  `attachment` varchar(255) DEFAULT NULL,
+  `academic_year` varchar(20) NOT NULL DEFAULT '2026-27',
+  `status` enum('active','inactive') DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `class_id` (`class_id`),
+  KEY `section_id` (`section_id`),
+  KEY `subject_id` (`subject_id`),
+  KEY `teacher_id` (`teacher_id`),
+  CONSTRAINT `homework_ibfk_1` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `homework_ibfk_2` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `homework_ibfk_3` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `homework_ibfk_4` FOREIGN KEY (`teacher_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table school_erp.homework_submissions
+CREATE TABLE IF NOT EXISTS `homework_submissions` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `homework_id` bigint unsigned NOT NULL,
+  `student_id` bigint unsigned NOT NULL,
+  `submission_text` text,
+  `attachment` varchar(255) DEFAULT NULL,
+  `submitted_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `status` enum('Pending','Submitted','Evaluated') DEFAULT 'Pending',
+  `marks` decimal(5,2) DEFAULT NULL,
+  `teacher_remarks` text,
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_homework_student` (`homework_id`,`student_id`),
+  KEY `student_id` (`student_id`),
+  CONSTRAINT `homework_submissions_ibfk_1` FOREIGN KEY (`homework_id`) REFERENCES `homework` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `homework_submissions_ibfk_2` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Data exporting was unselected.
+
 -- Dumping structure for table school_erp.modules
 CREATE TABLE IF NOT EXISTS `modules` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
@@ -63,30 +252,24 @@ CREATE TABLE IF NOT EXISTS `modules` (
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `module_code` (`module_code`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
 
--- Dumping structure for table school_erp.online_meet_links
-CREATE TABLE IF NOT EXISTS `online_meet_links` (
+-- Dumping structure for table school_erp.notices
+CREATE TABLE IF NOT EXISTS `notices` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
-  `class_id` bigint unsigned NOT NULL,
-  `section_id` bigint unsigned NOT NULL,
-  `subject_id` bigint unsigned NOT NULL,
-  `day_of_week` enum('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday') NOT NULL,
-  `period_number` tinyint unsigned NOT NULL,
-  `link` varchar(255) NOT NULL,
+  `title` varchar(200) NOT NULL,
+  `description` text,
+  `type` varchar(50) NOT NULL,
+  `start_date` date NOT NULL,
+  `end_date` date NOT NULL,
+  `attachment` varchar(255) DEFAULT NULL,
   `status` enum('active','inactive') DEFAULT 'active',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  PRIMARY KEY (`id`),
-  KEY `class_id` (`class_id`),
-  KEY `section_id` (`section_id`),
-  KEY `subject_id` (`subject_id`),
-  CONSTRAINT `online_meet_links_ibfk_1` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `online_meet_links_ibfk_2` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `online_meet_links_ibfk_3` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
 
@@ -107,7 +290,7 @@ CREATE TABLE IF NOT EXISTS `permissions` (
   KEY `module_id` (`module_id`),
   CONSTRAINT `permissions_ibfk_1` FOREIGN KEY (`role_id`) REFERENCES `roles` (`id`) ON DELETE CASCADE,
   CONSTRAINT `permissions_ibfk_2` FOREIGN KEY (`module_id`) REFERENCES `modules` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=105 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
 
@@ -139,11 +322,32 @@ CREATE TABLE IF NOT EXISTS `sections` (
 
 -- Data exporting was unselected.
 
+-- Dumping structure for table school_erp.student_achievements
+CREATE TABLE IF NOT EXISTS `student_achievements` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `student_id` bigint unsigned NOT NULL,
+  `achievement_type` varchar(50) NOT NULL,
+  `title` varchar(200) NOT NULL,
+  `description` text,
+  `achievement_date` date NOT NULL,
+  `level` varchar(50) DEFAULT NULL,
+  `attachment` varchar(255) DEFAULT NULL,
+  `status` enum('active','inactive') DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `student_id` (`student_id`),
+  CONSTRAINT `student_achievements_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Data exporting was unselected.
+
 -- Dumping structure for table school_erp.student_attendance
 CREATE TABLE IF NOT EXISTS `student_attendance` (
   `id` bigint unsigned NOT NULL AUTO_INCREMENT,
   `student_id` bigint unsigned NOT NULL,
   `attendance_date` date NOT NULL,
+  `academic_year` varchar(20) NOT NULL DEFAULT '2026-27',
   `status` enum('Present','Absent','Late','Leave') NOT NULL,
   `remarks` text,
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -151,7 +355,7 @@ CREATE TABLE IF NOT EXISTS `student_attendance` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_student_date` (`student_id`,`attendance_date`),
   CONSTRAINT `student_attendance_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=53 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
 
@@ -175,14 +379,89 @@ CREATE TABLE IF NOT EXISTS `student_details` (
   `mother_phone` varchar(20) DEFAULT NULL,
   `mother_occupation` varchar(100) DEFAULT NULL,
   `sibling_details` text,
+  `academic_year` varchar(20) NOT NULL DEFAULT '2026-27',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_user_id` (`user_id`),
+  UNIQUE KEY `uk_user_academic_year` (`user_id`,`academic_year`),
   KEY `fk_student_class` (`class_id`),
   KEY `fk_student_section` (`section_id`),
   CONSTRAINT `fk_student_class` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE SET NULL,
   CONSTRAINT `fk_student_details_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_student_section` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table school_erp.student_leaves
+CREATE TABLE IF NOT EXISTS `student_leaves` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `student_id` bigint unsigned NOT NULL,
+  `leave_type` varchar(50) NOT NULL,
+  `from_date` date NOT NULL,
+  `to_date` date NOT NULL,
+  `academic_year` varchar(20) NOT NULL DEFAULT '2026-27',
+  `reason` text,
+  `leave_status` enum('Pending','Approved','Rejected') DEFAULT 'Pending',
+  `applied_date` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `approved_by` bigint unsigned DEFAULT NULL,
+  `approved_date` date DEFAULT NULL,
+  `remarks` text,
+  `status` enum('active','inactive') DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `student_id` (`student_id`),
+  KEY `approved_by` (`approved_by`),
+  CONSTRAINT `student_leaves_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `student_leaves_ibfk_2` FOREIGN KEY (`approved_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table school_erp.student_transports
+CREATE TABLE IF NOT EXISTS `student_transports` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `student_id` bigint unsigned NOT NULL,
+  `transport_id` bigint unsigned NOT NULL,
+  `pickup_point` varchar(100) DEFAULT NULL,
+  `drop_point` varchar(100) DEFAULT NULL,
+  `status` enum('active','inactive') DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_student_transport` (`student_id`,`transport_id`),
+  KEY `transport_id` (`transport_id`),
+  CONSTRAINT `student_transports_ibfk_1` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `student_transports_ibfk_2` FOREIGN KEY (`transport_id`) REFERENCES `transports` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table school_erp.study_materials
+CREATE TABLE IF NOT EXISTS `study_materials` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `class_id` bigint unsigned NOT NULL,
+  `section_id` bigint unsigned NOT NULL,
+  `subject_id` bigint unsigned NOT NULL,
+  `teacher_id` bigint unsigned NOT NULL,
+  `title` varchar(200) NOT NULL,
+  `description` text,
+  `type` enum('pdf','note','video','ppt','lecture','ebook','link') NOT NULL,
+  `file_path` varchar(255) DEFAULT NULL,
+  `link_url` varchar(255) DEFAULT NULL,
+  `academic_year` varchar(20) NOT NULL DEFAULT '2026-27',
+  `status` enum('active','inactive') DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `class_id` (`class_id`),
+  KEY `section_id` (`section_id`),
+  KEY `subject_id` (`subject_id`),
+  KEY `teacher_id` (`teacher_id`),
+  CONSTRAINT `study_materials_ibfk_1` FOREIGN KEY (`class_id`) REFERENCES `classes` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `study_materials_ibfk_2` FOREIGN KEY (`section_id`) REFERENCES `sections` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `study_materials_ibfk_3` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `study_materials_ibfk_4` FOREIGN KEY (`teacher_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
 
@@ -242,6 +521,7 @@ CREATE TABLE IF NOT EXISTS `timetable` (
   `subject_id` bigint unsigned NOT NULL,
   `teacher_id` bigint unsigned NOT NULL,
   `room` varchar(20) DEFAULT NULL,
+  `online_link` varchar(255) DEFAULT NULL,
   `academic_year` varchar(20) NOT NULL,
   `status` enum('active','inactive') DEFAULT 'active',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -256,6 +536,23 @@ CREATE TABLE IF NOT EXISTS `timetable` (
   CONSTRAINT `timetable_ibfk_3` FOREIGN KEY (`subject_id`) REFERENCES `subjects` (`id`) ON DELETE CASCADE,
   CONSTRAINT `timetable_ibfk_4` FOREIGN KEY (`teacher_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=91 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table school_erp.transports
+CREATE TABLE IF NOT EXISTS `transports` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT,
+  `route_name` varchar(100) NOT NULL,
+  `driver_name` varchar(100) NOT NULL,
+  `driver_phone` varchar(20) NOT NULL,
+  `pickup_time` time NOT NULL,
+  `drop_time` time NOT NULL,
+  `route_details` text,
+  `status` enum('active','inactive') DEFAULT 'active',
+  `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
 -- Data exporting was unselected.
 
@@ -283,6 +580,8 @@ CREATE TABLE IF NOT EXISTS `users` (
   `full_name` varchar(150) NOT NULL,
   `email` varchar(150) DEFAULT NULL,
   `mobile` varchar(20) DEFAULT NULL,
+  `fcm_token` varchar(255) DEFAULT NULL,
+  `device_type` enum('android','ios','web') DEFAULT 'web',
   `status` enum('active','inactive') DEFAULT 'active',
   `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

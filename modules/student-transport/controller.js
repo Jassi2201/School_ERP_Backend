@@ -84,3 +84,37 @@ exports.delete = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+
+// ===================== MOBILE: STUDENT TRANSPORT =====================
+exports.getMyTransport = async (req, res) => {
+  try {
+    const student_id = req.user.user_id;
+
+    const [rows] = await pool.query(
+      `
+      SELECT st.*,
+             t.route_name, t.driver_name, t.driver_phone, 
+             t.pickup_time, t.drop_time,
+             u.full_name AS student_name
+      FROM student_transports st
+      JOIN transports t ON t.id = st.transport_id
+      JOIN users u ON u.id = st.student_id
+      WHERE st.student_id = ? AND st.status = 'active'
+      `,
+      [student_id]
+    );
+
+    if (!rows.length) {
+      return res.json({
+        success: true,
+        data: null,
+        message: 'No transport assigned to this student.'
+      });
+    }
+
+    res.json({ success: true, data: rows[0] });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
